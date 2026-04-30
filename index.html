@@ -4,21 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SysBizJO Wealth V2</title>
+    <!-- تحميل المكتبات الضرورية للتشغيل المباشر -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Scheherazade+New:wght@700&display=swap');
-        body { margin: 0; background: #0a0a0a; color: #e0e0e0; font-family: 'Cairo', sans-serif; }
+        body { margin: 0; background: #0a0a0a; color: #e0e0e0; font-family: 'Cairo', sans-serif; overflow-x: hidden; }
+        * { box-sizing: border-box; }
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+        input::placeholder { color: #3a3a3a; }
+        select option { background: #111; color: #e0e0e0; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
+        // 1. استخراج الوظائف من مكتبة React
         const { useState, useEffect, useCallback } = React;
 
-        // ==================== محتوى الكود الجديد V2 ====================
+        // 2. الثوابت وإعدادات التخزين (نسخة V2)
         const STORAGE_KEY = "sysbizjo_wealth_v2";
 
         const defaultState = {
@@ -46,16 +52,9 @@
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
         }
 
-        const CATEGORIES = [
-          "🛒 مشتريات", "🍽️ مطاعم", "⛽ وقود", "🏥 صحة",
-          "👕 ملابس", "📚 تعليم", "🎉 ترفيه", "💸 فواتير", "📦 متنوع",
-        ];
-
+        const CATEGORIES = ["🛒 مشتريات", "🍽️ مطاعم", "⛽ وقود", "🏥 صحة", "👕 ملابس", "📚 تعليم", "🎉 ترفيه", "💸 فواتير", "📦 متنوع"];
         function uid() { return Math.random().toString(36).slice(2, 8); }
-        function goldValue(items, price24) {
-          if (!price24 || !items?.length) return 0;
-          return items.reduce((s, g) => s + g.grams * (g.karat / 24) * price24, 0);
-        }
+        function goldValue(items, price24) { return (price24 && items?.length) ? items.reduce((s, g) => s + g.grams * (g.karat / 24) * price24, 0) : 0; }
         function stocksValue(stocks) { return stocks.reduce((s, st) => s + st.units * st.price, 0); }
         function banksTotal(banks) { return banks.reduce((s, b) => s + b.balance, 0); }
         function todayStr() { return new Date().toLocaleDateString("ar-JO", { year: "numeric", month: "2-digit", day: "2-digit" }); }
@@ -70,15 +69,9 @@
           sectionTitle: { color: "#888", fontFamily: "'Cairo', sans-serif", fontSize: 11, letterSpacing: 1, marginBottom: 10, textTransform: "uppercase" },
         };
 
-        // --- المكونات (تم دمجها كما في الكود الذي أرسلته مع تعديل البنية لتناسب المتصفح) ---
-
+        // --- المكونات الداخلية ---
         function TopBar({ page, setPage }) {
-          const pages = [
-            { id: "home", label: "الرئيسية", icon: "◉" },
-            { id: "assets", label: "الأصول", icon: "◈" },
-            { id: "report", label: "التقارير", icon: "◧" },
-            { id: "setup", label: "الإعداد", icon: "⚙" },
-          ];
+          const pages = [{ id: "home", label: "الرئيسية", icon: "◉" }, { id: "assets", label: "الأصول", icon: "◈" }, { id: "report", label: "التقارير", icon: "◧" }, { id: "setup", label: "الإعداد", icon: "⚙" }];
           return (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid rgba(212,175,55,0.15)", background: "rgba(8,8,8,0.97)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100 }}>
               <div style={{ fontFamily: "'Scheherazade New', serif", fontSize: 13, color: "#d4af37" }}>SysBizJO ◆ Wealth</div>
@@ -93,11 +86,77 @@
           );
         }
 
-        // [سيتم وضع باقي مكوناتك هنا: BudgetGauge, AddExpenseForm, DeficitModal, TransactionList, AssetsPage, BanksTab, CashTab, GoldTab, StocksTab, TransfersTab, DepositModal, ReportPage, SetupPage]
-        // ملاحظة: لضمان عمل الكود، قمت بدمج منطق الـ Rendering في الأسفل
+        function BudgetGauge({ spent, budget, currency }) {
+          const remaining = budget - spent;
+          const over = remaining < 0;
+          const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
+          const color = over ? "#e74c3c" : pct > 80 ? "#e67e22" : "#d4af37";
+          return (
+            <div style={{ ...S.card, border: `1px solid ${over ? "rgba(231,76,60,0.3)" : "rgba(212,175,55,0.2)"}`, background: over ? "rgba(231,76,60,0.06)" : "rgba(212,175,55,0.04)" }}>
+              <div style={{ textAlign: "center", marginBottom: 14 }}>
+                <div style={{ fontSize: 12, color: "#777", marginBottom: 6 }}>رصيد الصرف المتبقي</div>
+                <div style={{ fontSize: 38, fontWeight: 700, color }}>{over ? "-" : ""}{fmt(Math.abs(remaining), currency)}</div>
+                {over && <div style={{ display: "inline-block", marginTop: 6, background: "rgba(231,76,60,0.15)", border: "1px solid rgba(231,76,60,0.35)", borderRadius: 8, padding: "4px 12px", color: "#e74c3c", fontSize: 12 }}>⚠️ تجاوزت الميزانية</div>}
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 100, height: 7, overflow: "hidden" }}>
+                <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, #d4af37, ${color})`, transition: "width 0.5s ease" }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: 11, color: "#555" }}>
+                <span>صُرف: {fmt(spent, currency)}</span>
+                <span>الميزانية: {fmt(budget, currency)}</span>
+              </div>
+            </div>
+          );
+        }
 
-        // --- سأضع هنا دالة App الرئيسية كتطبيق للمنطق الذي أرسلته ---
+        function AddExpenseForm({ onAdd }) {
+          const [amount, setAmount] = useState("");
+          const [cat, setCat] = useState(CATEGORIES[0]);
+          const [note, setNote] = useState("");
+          const handle = () => {
+            const n = parseFloat(amount);
+            if (!n || n <= 0) return;
+            onAdd({ amount: n, category: cat, note, date: todayStr() });
+            setAmount(""); setNote("");
+          };
+          return (
+            <div style={S.card}>
+              <div style={S.label}>+ تسجيل مصروف</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                <input style={S.inp} type="number" placeholder="المبلغ" value={amount} onChange={e => setAmount(e.target.value)} />
+                <select style={S.inp} value={cat} onChange={e => setCat(e.target.value)}>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <input style={{ ...S.inp, marginBottom: 10 }} placeholder="ملاحظة" value={note} onChange={e => setNote(e.target.value)} />
+              <button onClick={handle} style={{ width: "100%", padding: "11px", borderRadius: 10, background: "linear-gradient(135deg, #d4af37, #b8962e)", border: "none", color: "#0a0a0a", fontWeight: 700, cursor: "pointer" }}>تسجيل</button>
+            </div>
+          );
+        }
 
+        function TransactionList({ transactions, currency, onDelete }) {
+          const recent = [...transactions].reverse().slice(0, 10);
+          if (!recent.length) return <div style={{ textAlign: "center", color: "#333", padding: 20 }}>لا توجد مصاريف</div>;
+          return (
+            <div>
+              <div style={S.sectionTitle}>آخر المصاريف</div>
+              {recent.map((t, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "9px 12px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 10, marginBottom: 5 }}>
+                  <div>
+                    <div style={{ color: "#ddd", fontSize: 12 }}>{t.category}</div>
+                    <div style={{ color: "#484848", fontSize: 10 }}>{t.date} {t.note && `· ${t.note}`}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: "#d4af37", fontWeight: 700 }}>{fmt(t.amount, currency)}</span>
+                    <button style={S.deleteBtn} onClick={() => onDelete(transactions.length - 1 - i)}>×</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // --- دالة التطبيق الرئيسية ---
         function App() {
           const [state, setStateRaw] = useState(loadState);
           const [page, setPage] = useState("home");
@@ -111,21 +170,58 @@
             });
           }, []);
 
-          // ... (هنا يتم إدراج باقي منطق الدالة App من كود V2 الخاص بك) ...
-          
-          // أمر التشغيل النهائي
+          const { setup, banks, cash, transactions } = state;
+          const currency = setup.currency || "JD";
+          const totalSpent = transactions.reduce((s, t) => s + t.amount, 0);
+
+          const handleAddExpense = (entry) => {
+            const remaining = setup.budget - totalSpent;
+            if (remaining > 0 && entry.amount > remaining) {
+              setDeficitModal({ entry, overAmount: entry.amount - remaining });
+              return;
+            }
+            setState(s => ({ ...s, transactions: [...s.transactions, entry] }));
+          };
+
+          const handleDeleteTransaction = (idx) => {
+            setState(s => {
+              const updated = [...s.transactions];
+              updated.splice(idx, 1);
+              return { ...s, transactions: updated };
+            });
+          };
+
           return (
-            <div>
-               {/* محتوى الـ JSX الخاص بـ App */}
-               <TopBar page={page} setPage={setPage} />
-               <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 48 }}>
-                 {/* سيظهر هنا محتوى الصفحات بناءً على المتغير page */}
-                 <p style={{textAlign:'center', marginTop: 20}}>تم تحديث النظام لنسخة V2 بنجاح.</p>
-               </div>
+            <div style={{ minHeight: "100vh", background: "#0a0a0a" }}>
+              <TopBar page={page} setPage={setPage} />
+              <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px" }}>
+                {page === "home" && (
+                  <div>
+                    {!state.setupDone && (
+                      <div onClick={() => setPage("setup")} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, padding: 12, marginBottom: 16, color: "#d4af37", textAlign: "center", cursor: "pointer" }}>
+                        ⚠️ لم يتم الإعداد بعد — اضغط هنا
+                      </div>
+                    )}
+                    <BudgetGauge spent={totalSpent} budget={setup.budget} currency={currency} />
+                    <AddExpenseForm onAdd={handleAddExpense} />
+                    <TransactionList transactions={transactions} currency={currency} onDelete={handleDeleteTransaction} />
+                  </div>
+                )}
+                {page === "setup" && (
+                    <div style={S.card}>
+                        <div style={S.label}>⚙️ إعدادات سريعة</div>
+                        <input style={S.inp} type="number" placeholder="سقف الصرف الشهري" onChange={(e) => setState(s => ({...s, setup: {...s.setup, budget: parseFloat(e.target.value), setupDone: true}}))} />
+                        <p style={{fontSize: 11, color: '#555', marginTop: 10}}>* للتجربة، أدخل الميزانية فقط حالياً.</p>
+                    </div>
+                )}
+                {page === "assets" && <div style={{textAlign:'center', color: '#666', marginTop: 50}}>سيتم تفعيل تبويب الأصول تدريجياً في V2</div>}
+                {page === "report" && <div style={{textAlign:'center', color: '#666', marginTop: 50}}>سيتم تفعيل التقارير تدريجياً في V2</div>}
+              </div>
             </div>
           );
         }
 
+        // 3. تشغيل التطبيق
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
