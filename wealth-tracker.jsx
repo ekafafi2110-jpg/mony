@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+const { useState, useEffect, useCallback } = React;
 
 // ==================== STORAGE ====================
 const STORAGE_KEY = "sysbizjo_wealth_v1";
@@ -706,7 +706,7 @@ function SetupPage({ state, setState }) {
 }
 
 // ==================== MAIN APP ====================
-export default function App() {
+ function App() {
   const [state, setStateRaw] = useState(loadState);
   const [page, setPage] = useState("home");
   const [deficitModal, setDeficitModal] = useState(null);
