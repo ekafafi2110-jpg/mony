@@ -2,22 +2,41 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SysBizJO Wealth Tracker</title>
-    <!-- مكتبات التشغيل -->
+    <!-- استدعاء المكتبات الضرورية -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { margin: 0; background: #0a0a0a; color: #e0e0e0; font-family: 'Cairo', sans-serif; }
+    </style>
 </head>
 <body>
     <div id="root"></div>
-    <!-- استدعاء ملفك البرمجي -->
-    <script type="text/babel" src="wealth-tracker.jsx"></script>
+
     <script type="text/babel">
-        // تشغيل التطبيق
-        setTimeout(() => {
-          const root = ReactDOM.createRoot(document.getElementById('root'));
-          root.render(React.createElement(App));
-        }, 500);
+        // 1. تعريف الوظائف الأساسية من React
+        const { useState, useEffect, useCallback } = React;
+
+        // 2. كود تطبيق تتبع الثروة (بعد إزالة import/export)
+        // [هنا تضع محتوى ملف wealth-tracker.jsx بالكامل مع التعديلات المذكورة]
+        
+        // --- مثال على بداية الكود ---
+        const STORAGE_KEY = "sysbizjo_wealth_v1";
+        const defaultState = {
+          setup: { salary: 0, budget: 0, goldPrice24: 0, currency: "JD" },
+          assets: { bank: 0, cash: 0, gold: 0, goldKarat: 24, stocks: 0 },
+          transactions: [],
+          transfers: [],
+          monthStart: { bank: 0, cash: 0, gold: 0, stocks: 0 },
+          setupDone: false,
+        };
+        // [تكملة بقية الدوال والمكونات: TopBar, BudgetGauge, App... إلخ]
+
+        // 3. أمر التشغيل النهائي (أهم سطر لحل الشاشة البيضاء)
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
