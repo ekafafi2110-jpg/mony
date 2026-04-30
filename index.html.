@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>SysBizJO Wealth Tracker</title>
+    <!-- مكتبات التشغيل -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <!-- استدعاء ملفك البرمجي -->
+    <script type="text/babel" src="wealth-tracker.jsx"></script>
+    <script type="text/babel">
+        // تشغيل التطبيق
+        setTimeout(() => {
+          const root = ReactDOM.createRoot(document.getElementById('root'));
+          root.render(React.createElement(App));
+        }, 500);
+    </script>
+</body>
+</html>
